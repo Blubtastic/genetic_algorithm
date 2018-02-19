@@ -56,6 +56,26 @@ class GeneticAlgorithm:
     def get_lowest_score(self, scores):
         return scores.index(min(scores)), min(scores)
 
+    def get_best_genome(self, population):
+        best_index = 0
+        best_score = math.inf
+        for index, genome in enumerate(population):
+            score = self.fitness_score_new(genome)
+            if score < best_score:
+                best_score = score
+                best_index = index
+        return population[best_index]
+
+    def get_best_genomes(self, scores, population, amount):
+        indices = np.argsort(scores)[:amount]
+        # clone
+        pops = [population[i] for i in indices]
+        return_value = []
+        for pop in pops:
+            flat, indi = ArrayHandler.flatten(pop)
+            return_value.append(ArrayHandler.listify(flat, indi))
+        return return_value
+
     def fitness_score_depot(self, routes, depot):
         lists = []
         for j in range(len(routes)):
@@ -120,8 +140,6 @@ class GeneticAlgorithm:
 
         child[point1:point2] = crossover
         return ArrayHandler.listify(child, child_indices)
-
-
 
     def mutate_inverse(self, genome):
         # finds a random cut in a random gene (one path) and reverse it
@@ -233,20 +251,33 @@ class GeneticAlgorithm:
 
 # INIT STUFF
 ga = GeneticAlgorithm(1)
-population_size = 30
+population_size = 200
 iterations = 1
 iteration_limit = 1000
 crossover_chance = 0.5
+score = math.inf
+last_improvement = 0
+last_score = score
 # create initial population
 population = ga.generate_random_population(population_size)
+
 
 # MAIN LOOP (ITERATIONS)
 while iterations < iteration_limit:
     # calc fitness
     population_scores = [ga.fitness_score_new(g) for g in population]
+    elites = ga.get_best_genomes(population_scores, population, 5)
+    children = []
+    children.extend(elites)
+
     score = min(population_scores)
 
-    children = []
+    if score == last_score:
+        last_improvement += 1
+    else:
+        last_improvement = 0
+    last_score = score
+
 
     # create new population
     while len(children) < population_size:
@@ -261,7 +292,7 @@ while iterations < iteration_limit:
                     child = p2
             else:
                 if random.random() > 0.80:
-                    child = ga.crossover_special(p1, p1)
+                    child = ga.crossover_special(p1, p2)
                 else:
                     child = ga.crossover(p1, p2)
             fraction = random.random()
@@ -279,5 +310,6 @@ while iterations < iteration_limit:
         print("iterations: ", iterations, ". Best score: ", score)
 
     iterations += 1
-
-ga.visualize_genome(population[0])
+best = ga.get_best_genome(population)
+score = ga.fitness_score_new(best)
+ga.visualize_genome(population[0], score)
