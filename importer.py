@@ -36,6 +36,7 @@ class Depot:
         self.vehicle = vehicle
         self.demand = 0
 
+
 # -------- MAIN IMPORTER CLASS --------
 # An object w/ the data from one file, containing data about vehicles, customers and depots.
 class Importer:
@@ -54,14 +55,12 @@ class Importer:
         vehicle_count = int(line[0])  # vehicles per depot
         customer_count = int(line[1])
         depot_count = int(line[2])
-
         print('Customers', customer_count, '  Depots', depot_count, '  Vehicles', vehicle_count)
 
-        # create lists of all vehicle, customer and depot data
+        # Generate the representation. (Objects for vehicles, customers & depots)
         vehicles = []
         customers = []
         depots = []
-
         # vehicles
         for i in range(1, depot_count + 1):
             line = file.readline().replace('\n', '').strip().split(' ')  # make a list of all numbers
